@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #---------------------------------------------------------
-# Example usage:./run_trial.sh trial_name
+# Example usage:./run_test.sh test_name
 #---------------------------------------------------------
 
 # Create a folder to copy log files from docker
@@ -28,7 +28,7 @@ function combine_logs() {
 
 }
 
-function run_trial() {
+function run_test() {
     local teamname="ariac_test"
     local testname="$1"
     local iterations=$2
@@ -46,7 +46,7 @@ function run_trial() {
 
     for ((i=1;i<=iterations;i++)); 
     do
-        docker exec -it $teamname bash -c ". /container_scripts/run_trial.sh $testname"
+        docker exec -it $teamname bash -c ". /container_scripts/run_test.sh $testname"
         
         echo "==== Copying logs to"
 
@@ -62,15 +62,10 @@ function run_trial() {
 if [[ "$1" != "run-all" ]] ; then
     if [[ ! $2 ]] ; then
         echo "==== Running test $1 1 time"
-        run_trial $1 1
+        run_test $1 1
     else
         echo "==== Running test $1 $2 times"
-        run_trial $1 $2
-        
-        # for ((i=1;i<=$2;i++)); do
-        #     run_trial $1
-        # combine_logs $1 $2
-        # done
+        run_test $1 $2
     fi
 
 else
@@ -83,19 +78,15 @@ else
     echo "==== Running all tests from the tests directory"
     # absolute path of the current script
     tests_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # https://stackoverflow.com/a/4774063/99379
-    # get each file in the trials folder
+    # get each file in the tests folder
     for entry in "$tests_dir"/tests/*
     do
-        # e.g., kitting.yaml
+        # e.g., test1.launch.py
         test_file="${entry##*/}"
-        # e.g., kitting
+        # e.g., test1
         test_name=${test_file::-10}
 
-        run_trial $test_name $iterations
-
-        # for ((i=1;i<=iterations;i++)); do
-        #     run_trial $test_name $iterations
-        # done
+        run_test $test_name $iterations
 
     done
 fi

@@ -62,8 +62,7 @@ def main():
         except subprocess.CalledProcessError:
             pass
 
-    print(f"==== Trial {trial_name} completed")
-    print(f"Check Flag is {check_flag}")
+    print(f"==== Test {test_name} completed")
 
     log_file.write("\nCompleted Task")
     log_file.close()
