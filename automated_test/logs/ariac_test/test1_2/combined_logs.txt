@@ -1,8 +1,0 @@
-Test 1
-Starting Test
-Passed!
----
-Test 2
-Starting Test
-Passed!
----

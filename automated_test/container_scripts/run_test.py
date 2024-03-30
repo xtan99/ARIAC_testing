@@ -33,7 +33,6 @@ def main():
 
     log_file = open("/tmp/test_log.txt", 'a')
     log_file.write("Starting Test")
-    check_flag = False
 
     while True:
 

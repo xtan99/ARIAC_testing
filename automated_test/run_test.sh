@@ -12,11 +12,12 @@ fi
 function combine_logs() {
     local dirname="$1"
     local j=1
+    local arr=()
 
     for file in $dirname/*
     do
         log_file="${file##*/}"
-        echo "Test $j" >> $dirname/combined_logs.txt
+        echo "Run $j" >> $dirname/combined_logs.txt
         
         while read -r LINE
         do
@@ -24,6 +25,14 @@ function combine_logs() {
         done < "$file"
 
         let j++
+
+        arr+=($file)
+
+    done
+
+    for i in $arr; 
+    do
+        rm $i
     done
 
 }
