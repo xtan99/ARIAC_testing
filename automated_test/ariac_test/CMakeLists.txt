@@ -58,6 +58,18 @@ install(TARGETS test_2
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
+# Add test_3 executable
+add_executable(test_3 src/test_3.cpp)
+target_include_directories(test_3 PRIVATE include)
+target_link_libraries(test_3
+  ${PROJECT_NAME}
+)
+ament_target_dependencies(test_3 ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+install(TARGETS test_3
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
 install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

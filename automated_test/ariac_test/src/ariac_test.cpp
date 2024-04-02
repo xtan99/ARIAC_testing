@@ -1275,213 +1275,6 @@ bool AriacTest::FloorRobotBinTest()
   return true;
 }
 
-bool AriacTest::FloorRobotPickandPlaceTest(){
-  RCLCPP_INFO_STREAM(get_logger(), "Testing Floor Robot Pick and Place of Parts");
-
-  //Change gripper at station 1
-  if (floor_gripper_state_.type != "part_gripper")
-  {
-    std::string station = "kts2";
-    floor_robot_.setJointValueTarget(floor_kts2_js_);
-    FloorRobotMovetoTarget();
-    FloorRobotChangeGripper(station, "parts");
-  }
-
-  // Keep a count of number of parts not picked
-  int agv_num;
-  int quadrant_num_right = 4;
-  int quadrant_num_left = 4;
-
-  // Vector to track AGVs
-
-  // Create two new vectors to hold initially detected parts
-  std::vector<ariac_msgs::msg::PartPose> right_parts;
-  std::vector<ariac_msgs::msg::PartPose> left_parts;
-  right_parts.insert(right_parts.begin(), right_bins_parts_.begin(), right_bins_parts_.end());
-  left_parts.insert(left_parts.begin(), left_bins_parts_.begin(), left_bins_parts_.end());
-
-  // RCLCPP_INFO_STREAM(get_logger(), "Parts in right bin " << right_bins_parts_.size());
-
-
-  for (auto part : right_parts)
-  { 
-    // Logic to keep 4 parts on each AGV
-    if (right_bins_parts_.size() > 4) agv_num = 1;
-    else {
-      agv_num = 2;
-      quadrant_num_right = right_bins_parts_.size();
-    }
-
-    RCLCPP_INFO_STREAM(get_logger(), "Parts in right bin " << right_bins_parts_.size());
-    RCLCPP_INFO_STREAM(get_logger(), "Quadrant numebr is " << quadrant_num_right);
-
-    geometry_msgs::msg::Pose part_pose;
-    ariac_msgs::msg::Part part_to_pick;
-
-    part_to_pick = part.part;
-    part_pose = MultiplyPose(right_bins_camera_pose_, part.pose);
-    double part_rotation = GetYaw(part_pose);
-
-    floor_robot_.setJointValueTarget("linear_actuator_joint", rail_positions_["right_bins"]);
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-
-    std::vector<geometry_msgs::msg::Pose> waypoints;
-    waypoints.push_back(BuildPose(part_pose.position.x, part_pose.position.y,
-                                  part_pose.position.z + 0.5, SetRobotOrientation(part_rotation)));
-
-    waypoints.push_back(BuildPose(part_pose.position.x, part_pose.position.y,
-                                  part_pose.position.z + part_heights_[part_to_pick.type] + pick_offset_, SetRobotOrientation(part_rotation)));
-
-    FloorRobotMoveCartesian(waypoints, 0.3, 0.3, true);
-    FloorRobotSetGripperState(true);
-    FloorRobotWaitForAttach(3.0);
-
-    // Add part to planning scene
-    std::string part_name = part_colors_[part_to_pick.color] + "_" + part_types_[part_to_pick.type];
-    AddModelToPlanningScene(part_name, part_types_[part_to_pick.type] + ".stl", part_pose);
-    floor_robot_.attachObject(part_name);
-    floor_robot_attached_part_ = part_to_pick;
-
-    // Move up slightly
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_pose.position.x, part_pose.position.y,
-                                  part_pose.position.z + 0.5, SetRobotOrientation(part_rotation)));
-    FloorRobotMoveCartesian(waypoints, 0.2, 0.1, true);
-
-    sleep(1);
-
-    RCLCPP_INFO_STREAM(get_logger(), "Successfully picked the " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the  right bin");
-
-    // Move up over right bins 
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-
-    // Move to AGV
-    floor_robot_.setJointValueTarget("linear_actuator_joint", rail_positions_["agv" + std::to_string(agv_num)]);
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-
-    auto agv_tray_pose = FrameWorldPose("agv" + std::to_string(agv_num) + "_tray");
-    auto part_drop_offset = BuildPose(quad_offsets_[quadrant_num_right].first, quad_offsets_[quadrant_num_right].second, 0.0,
-                                      geometry_msgs::msg::Quaternion());
-    auto part_drop_pose = MultiplyPose(agv_tray_pose, part_drop_offset);
-
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_drop_pose.position.x, part_drop_pose.position.y,
-                                  part_drop_pose.position.z + 0.3, SetRobotOrientation(0)));
-    waypoints.push_back(BuildPose(part_drop_pose.position.x, part_drop_pose.position.y,
-                                  part_drop_pose.position.z + part_heights_[floor_robot_attached_part_.type] + kit_tray_thickness_ + drop_height_,
-                                  SetRobotOrientation(0)));
-    FloorRobotMoveCartesian(waypoints, 0.2, 0.2, true);
-
-    // Drop part in quadrant
-    FloorRobotSetGripperState(false);
-    // std::string part_name = part_colors_[floor_robot_attached_part_.color] +
-    //                         "_" + part_types_[floor_robot_attached_part_.type];
-    floor_robot_.detachObject(part_name);
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_drop_pose.position.x, part_drop_pose.position.y,
-                                  part_drop_pose.position.z + 0.2,
-                                  SetRobotOrientation(0)));
-    FloorRobotMoveCartesian(waypoints, 0.2, 0.1, false);
-    floor_robot_.setJointValueTarget("linear_actuator_joint", rail_positions_["agv" + std::to_string(agv_num)]);
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-    quadrant_num_right -= 1;
-  }
-
-  for (auto part : left_parts)
-  { 
-    // Logic to keep 4 parts on each AGV
-    if (left_bins_parts_.size() > 4) agv_num = 4;
-    else {
-      agv_num = 3;
-      quadrant_num_left = left_bins_parts_.size();
-    }
-
-    RCLCPP_INFO_STREAM(get_logger(), "Parts in left bin " << right_bins_parts_.size());
-    RCLCPP_INFO_STREAM(get_logger(), "Quadrant numebr is " << quadrant_num_left);
-
-    geometry_msgs::msg::Pose part_pose;
-    ariac_msgs::msg::Part part_to_pick;
-
-    part_to_pick = part.part;
-    part_pose = MultiplyPose(left_bins_camera_pose_, part.pose);
-    double part_rotation = GetYaw(part_pose);
-
-    floor_robot_.setJointValueTarget("linear_actuator_joint", rail_positions_["left_bins"]);
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-
-    std::vector<geometry_msgs::msg::Pose> waypoints;
-    waypoints.push_back(BuildPose(part_pose.position.x, part_pose.position.y,
-                                  part_pose.position.z + 0.5, SetRobotOrientation(part_rotation)));
-
-    waypoints.push_back(BuildPose(part_pose.position.x, part_pose.position.y,
-                                  part_pose.position.z + part_heights_[part_to_pick.type] + pick_offset_, SetRobotOrientation(part_rotation)));
-
-    FloorRobotMoveCartesian(waypoints, 0.3, 0.3, true);
-    FloorRobotSetGripperState(true);
-    FloorRobotWaitForAttach(3.0);
-
-    // Add part to planning scene
-    std::string part_name = part_colors_[part_to_pick.color] + "_" + part_types_[part_to_pick.type];
-    AddModelToPlanningScene(part_name, part_types_[part_to_pick.type] + ".stl", part_pose);
-    floor_robot_.attachObject(part_name);
-    floor_robot_attached_part_ = part_to_pick;
-
-    // Move up slightly
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_pose.position.x, part_pose.position.y,
-                                  part_pose.position.z + 0.5, SetRobotOrientation(part_rotation)));
-    FloorRobotMoveCartesian(waypoints, 0.2, 0.1, true);
-
-    sleep(1);
-
-    RCLCPP_INFO_STREAM(get_logger(), "Successfully picked the " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the left bin");
-
-    // Move up over right bins 
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-
-    // Move to AGV
-    floor_robot_.setJointValueTarget("linear_actuator_joint", rail_positions_["agv" + std::to_string(agv_num)]);
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-
-    auto agv_tray_pose = FrameWorldPose("agv" + std::to_string(agv_num) + "_tray");
-    auto part_drop_offset = BuildPose(quad_offsets_[quadrant_num_left].first, quad_offsets_[quadrant_num_left].second, 0.0,
-                                      geometry_msgs::msg::Quaternion());
-    auto part_drop_pose = MultiplyPose(agv_tray_pose, part_drop_offset);
-
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_drop_pose.position.x, part_drop_pose.position.y,
-                                  part_drop_pose.position.z + 0.3, SetRobotOrientation(0)));
-    waypoints.push_back(BuildPose(part_drop_pose.position.x, part_drop_pose.position.y,
-                                  part_drop_pose.position.z + part_heights_[floor_robot_attached_part_.type] + kit_tray_thickness_ + drop_height_,
-                                  SetRobotOrientation(0)));
-    FloorRobotMoveCartesian(waypoints, 0.2, 0.2, true);
-
-    // Drop part in quadrant
-    FloorRobotSetGripperState(false);
-    // std::string part_name = part_colors_[floor_robot_attached_part_.color] +
-    //                         "_" + part_types_[floor_robot_attached_part_.type];
-    floor_robot_.detachObject(part_name);
-    waypoints.clear();
-    waypoints.push_back(BuildPose(part_drop_pose.position.x, part_drop_pose.position.y,
-                                  part_drop_pose.position.z + 0.2,
-                                  SetRobotOrientation(0)));
-    FloorRobotMoveCartesian(waypoints, 0.2, 0.1, false);
-    floor_robot_.setJointValueTarget("linear_actuator_joint", rail_positions_["agv" + std::to_string(agv_num)]);
-    floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-    FloorRobotMovetoTarget();
-    quadrant_num_left -= 1;
-  }
-
-  return true;
-}
-
 bool AriacTest::FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick)
 {
   RCLCPP_INFO_STREAM(get_logger(), "Attempting to pick a " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the bins");
@@ -2263,6 +2056,127 @@ bool AriacTest::CompleteKittingTask(ariac_msgs::msg::KittingTask task)
   order_planning_scene_objects_.clear();
 
   MoveAGV(task.agv_number, task.destination);
+
+  return true;
+}
+
+bool AriacTest::AssemblyTest()
+{
+
+  // Wait for first order to be published
+  while (orders_.size() == 0)
+  {
+  }
+
+  current_order_ = orders_.front();
+  // orders_.erase(orders_.begin());
+  
+  ariac_msgs::msg::AssemblyTask task = current_order_.assembly_task;
+
+  // Send AGVs to assembly station
+  for (auto const &agv : task.agv_numbers)
+  {
+    int destination;
+    if (task.station == ariac_msgs::msg::AssemblyTask::AS1 || task.station == ariac_msgs::msg::AssemblyTask::AS3)
+    {
+      destination = ariac_msgs::srv::MoveAGV::Request::ASSEMBLY_FRONT;
+    }
+    else if (task.station == ariac_msgs::msg::AssemblyTask::AS2 || task.station == ariac_msgs::msg::AssemblyTask::AS4)
+    {
+      destination = ariac_msgs::srv::MoveAGV::Request::ASSEMBLY_BACK;
+    }
+
+    LockAGVTray(agv);
+    MoveAGV(agv, destination);
+  }
+
+  CeilingRobotMoveToAssemblyStation(task.station);
+
+  // Get Assembly Poses
+  RCLCPP_INFO_STREAM(get_logger(), "Getting pre assembly poses for order " << current_order_.id);
+  auto request = std::make_shared<ariac_msgs::srv::GetPreAssemblyPoses::Request>();
+  request->order_id = current_order_.id;
+  auto future = pre_assembly_poses_getter_->async_send_request(request);
+
+  RCLCPP_INFO(get_logger(), "Waiting for pre assembly poses");
+
+  future.wait();
+
+  RCLCPP_INFO(get_logger(), "Recieved pre assembly poses");
+
+  std::vector<ariac_msgs::msg::PartPose> agv_part_poses;
+
+  auto result = future.get();
+  
+  if (result->valid_id)
+  {
+    RCLCPP_INFO(get_logger(), "Valid id");
+
+    try {
+      int len = result->parts.size();
+      RCLCPP_INFO_STREAM(get_logger(), "There are " << std::to_string(len) << " parts");
+    }
+    catch (...) {
+      RCLCPP_INFO(get_logger(), "Unable to access future result");
+    }
+
+    agv_part_poses = result->parts;
+
+    if (agv_part_poses.size() == 0)
+    {
+      RCLCPP_WARN(get_logger(), "No part poses recieved");
+      return false;
+    }
+  }
+  else
+  {
+    RCLCPP_WARN(get_logger(), "Not a valid order ID");
+    return false;
+  }
+
+  for (auto const &part_to_assemble : task.parts)
+  {
+    // Check if matching part exists in agv_parts
+    bool part_exists = false;
+    ariac_msgs::msg::PartPose part_to_pick;
+    part_to_pick.part = part_to_assemble.part;
+    for (auto const &agv_part : agv_part_poses)
+    {
+      if (agv_part.part.type == part_to_assemble.part.type && agv_part.part.color == part_to_assemble.part.color)
+      {
+        part_exists = true;
+        part_to_pick.pose = agv_part.pose;
+        break;
+      }
+    }
+
+    if (!part_exists)
+    {
+      RCLCPP_WARN_STREAM(get_logger(), "Part with type: " << part_to_assemble.part.type << " and color: " << part_to_assemble.part.color << " not found on tray");
+      continue;
+    }
+
+    // Pick up part
+    CeilingRobotPickAGVPart(part_to_pick);
+
+    CeilingRobotMoveToAssemblyStation(task.station);
+
+    // Assemble Part to insert
+    CeilingRobotAssemblePart(task.station, part_to_assemble);
+
+    CeilingRobotMoveToAssemblyStation(task.station);
+
+  }
+
+  if (assembly_station_states_[task.station].battery_attached && assembly_station_states_[task.station].pump_attached && assembly_station_states_[task.station].regulator_attached && assembly_station_states_[task.station].sensor_attached)
+    {
+      SetTestStatus("Passed!");
+    }
+
+    else
+    {
+      SetTestStatus("Failed");
+    }
 
   return true;
 }

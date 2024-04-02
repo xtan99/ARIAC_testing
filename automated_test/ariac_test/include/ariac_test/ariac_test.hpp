@@ -67,9 +67,10 @@ public:
   bool FloorRobotPickBinPart(ariac_msgs::msg::Part part_to_pick);
   bool FloorRobotPickConveyorPart(ariac_msgs::msg::Part part_to_pick);
   bool FloorRobotPlacePartOnKitTray(int agv_num, int quadrant);
+
   bool FloorRobotBinTest();
   bool FloorRobotTrayTest();
-  bool FloorRobotPickandPlaceTest();
+  bool AssemblyTest();
 
   // Ceiling Robot Public Functions
   void CeilingRobotSendHome();

@@ -13,7 +13,6 @@ import shutil
 
 def main():
     package_name = "ariac_test"
-    trial_name = "testing"
 
     # Clear ros log folder
     if (os.path.exists('/root/.ros/log')):
@@ -26,6 +25,12 @@ def main():
 
     test_name = sys.argv[1]
     launch_file = f"{test_name}.launch.py"
+    
+    if test_name == "test3":
+        trial_name = "assembly_test"
+
+    else:    
+        trial_name = "testing"
     
     process = Popen(["ros2", "launch", package_name, launch_file, f"trial_name:={trial_name}", '--noninteractive'])
 
