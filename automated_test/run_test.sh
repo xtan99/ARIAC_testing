@@ -24,15 +24,17 @@ function combine_logs() {
             echo "$LINE" >> $dirname/combined_logs.txt
         done < "$file"
 
+        arr[$j]="$file"
+
         let j++
-
-        arr+=($file)
-
     done
 
-    for i in $arr; 
+    # echo ${arr[@]}
+
+    for value in "${arr[@]}"; 
     do
-        rm $i
+        echo $value
+        rm $value
     done
 
 }
