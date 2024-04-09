@@ -26,7 +26,7 @@ def main():
     test_name = sys.argv[1]
     launch_file = f"{test_name}.launch.py"
     
-    if test_name == "test3":
+    if test_name == "assembly":
         trial_name = "assembly_test"
 
     else:    
@@ -37,7 +37,7 @@ def main():
     time.sleep(10)
 
     log_file = open("/tmp/test_log.txt", 'a')
-    log_file.write("Starting Test")
+    log_file.write(f"Starting {test_name}")
 
     while True:
 
@@ -52,6 +52,7 @@ def main():
             log_file.write(f"Error while reading topic test_status")
             break
 
+        #ros2 node list | grep move
 
         try:
             output = subprocess.check_output(

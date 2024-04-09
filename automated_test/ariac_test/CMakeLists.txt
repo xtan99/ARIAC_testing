@@ -34,39 +34,39 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-# Add test_1 executable
-add_executable(test_1 src/test_1.cpp)
-target_include_directories(test_1 PRIVATE include)
-target_link_libraries(test_1
+# Add test_pickparts executable
+add_executable(test_pickparts src/test_pickparts.cpp)
+target_include_directories(test_pickparts PRIVATE include)
+target_link_libraries(test_pickparts
   ${PROJECT_NAME}
 )
-ament_target_dependencies(test_1 ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(test_pickparts ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-install(TARGETS test_1
+install(TARGETS test_pickparts
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-# Add test_2 executable
-add_executable(test_2 src/test_2.cpp)
-target_include_directories(test_2 PRIVATE include)
-target_link_libraries(test_2
+# Add test_picktrays executable
+add_executable(test_picktrays src/test_picktrays.cpp)
+target_include_directories(test_picktrays PRIVATE include)
+target_link_libraries(test_picktrays
   ${PROJECT_NAME}
 )
-ament_target_dependencies(test_2 ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(test_picktrays ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-install(TARGETS test_2
+install(TARGETS test_picktrays
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-# Add test_3 executable
-add_executable(test_3 src/test_3.cpp)
-target_include_directories(test_3 PRIVATE include)
-target_link_libraries(test_3
+# Add test_assembly executable
+add_executable(test_assembly src/test_assembly.cpp)
+target_include_directories(test_assembly PRIVATE include)
+target_link_libraries(test_assembly
   ${PROJECT_NAME}
 )
-ament_target_dependencies(test_3 ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(test_assembly ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-install(TARGETS test_3
+install(TARGETS test_assembly
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 

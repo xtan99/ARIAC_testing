@@ -33,7 +33,6 @@ function combine_logs() {
 
     for value in "${arr[@]}"; 
     do
-        echo $value
         rm $value
     done
 

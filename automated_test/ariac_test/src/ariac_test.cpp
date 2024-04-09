@@ -2168,6 +2168,7 @@ bool AriacTest::AssemblyTest()
 
   }
 
+  //Log which specific part fails
   if (assembly_station_states_[task.station].battery_attached && assembly_station_states_[task.station].pump_attached && assembly_station_states_[task.station].regulator_attached && assembly_station_states_[task.station].sensor_attached)
     {
       SetTestStatus("Passed!");
