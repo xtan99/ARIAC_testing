@@ -950,12 +950,18 @@ bool AriacTest::FloorRobotTrayTest()
 
     sleep(1);
 
+    // Cause Failure
+    // FloorRobotSetGripperState(false);
+    // floor_robot_.detachObject(tray_name); 
+    // sleep(1);
+
     // Check if tray is attached to robot
     if (!floor_gripper_state_.attached)
     {
       RCLCPP_INFO_STREAM(get_logger(), "Unsuccessfull in picking tray" << tray_name << " from kts1");
 
-      SetTestStatus("Failed");
+      std::string message = "Failed to pick " + tray_name + " from kts1";
+      SetTestStatus(message);
 
       return true;
     }
@@ -1046,7 +1052,8 @@ bool AriacTest::FloorRobotTrayTest()
     {
       RCLCPP_INFO_STREAM(get_logger(), "Unsuccessfull in picking tray" << tray_name << " from kts2");
 
-      SetTestStatus("Failed");
+      std::string message = "Failed to pick " + tray_name + " from kts2";
+      SetTestStatus(message);
 
       return true;
     }
@@ -1097,7 +1104,7 @@ bool AriacTest::FloorRobotTrayTest()
 
 bool AriacTest::FloorRobotBinTest()
 {
-  RCLCPP_INFO_STREAM(get_logger(), "Testing Floor Robot Pick for Bin");
+  RCLCPP_INFO_STREAM(get_logger(), "Testing Floor Robot Pick from Bins");
 
   //Change gripper at station 1
   if (floor_gripper_state_.type != "part_gripper")
@@ -1154,8 +1161,8 @@ bool AriacTest::FloorRobotBinTest()
     FloorRobotMoveCartesian(waypoints, 0.2, 0.1, true);
 
     //Cause failure
-    // FloorRobotSetGripperState(false);
-    // floor_robot_.detachObject(part_name);
+    FloorRobotSetGripperState(false);
+    floor_robot_.detachObject(part_name);
 
     sleep(2);
 
@@ -1163,13 +1170,12 @@ bool AriacTest::FloorRobotBinTest()
     {
       RCLCPP_INFO_STREAM(get_logger(), "Unsuccessfull in picking the " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the  right bin");
       
-      floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-      FloorRobotMovetoTarget();
+      // floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
+      // FloorRobotMovetoTarget();
 
-      SetTestStatus("Failed");
-
-      FloorRobotSendHome();
-
+      std::string message = "Failed to pick " + part_colors_[part_to_pick.color] + " " + part_types_[part_to_pick.type] + " in right bins";
+      SetTestStatus(message);
+      
       return true;
     }
 
@@ -1240,11 +1246,9 @@ bool AriacTest::FloorRobotBinTest()
       if (!floor_gripper_state_.attached)
     {
       RCLCPP_INFO_STREAM(get_logger(), "Unsuccessfull in picking the " << part_colors_[part_to_pick.color] << " " << part_types_[part_to_pick.type] << " from the  right bin");
-      
-      floor_robot_.setJointValueTarget("floor_shoulder_pan_joint", 0);
-      FloorRobotMovetoTarget();
 
-      SetTestStatus("Failed");
+      std::string message = "Failed to pick " + part_colors_[part_to_pick.color] + " " + part_types_[part_to_pick.type] + " in left bins";
+      SetTestStatus(message);
 
       return true;
     }
@@ -2168,15 +2172,31 @@ bool AriacTest::AssemblyTest()
 
   }
 
-  //Log which specific part fails
   if (assembly_station_states_[task.station].battery_attached && assembly_station_states_[task.station].pump_attached && assembly_station_states_[task.station].regulator_attached && assembly_station_states_[task.station].sensor_attached)
     {
-      SetTestStatus("Passed!");
+      SetTestStatus("Passed");
     }
 
     else
     {
-      SetTestStatus("Failed");
+      if(!assembly_station_states_[task.station].battery_attached){
+        SetTestStatus("Failed Battery Assembly");
+      }
+
+      else if(!assembly_station_states_[task.station].pump_attached){
+        SetTestStatus("Failed Pump Assembly");
+      }
+
+      else if(!assembly_station_states_[task.station].sensor_attached){
+        SetTestStatus("Failed Sensor Assembly");
+      }
+
+      else if(!assembly_station_states_[task.station].regulator_attached){
+        SetTestStatus("Failed Regualtor Assembly");
+      }
+
+      else SetTestStatus("Failed");
+        
     }
 
   return true;

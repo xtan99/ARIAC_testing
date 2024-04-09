@@ -26,7 +26,7 @@ def main():
     test_name = sys.argv[1]
     launch_file = f"{test_name}.launch.py"
     
-    if test_name == "assembly":
+    if test_name == "test_assembly":
         trial_name = "assembly_test"
 
     else:    
@@ -44,8 +44,8 @@ def main():
         try:
             outs = subprocess.run(["ros2", "topic", "echo", "/test_status", "--once"], capture_output = True, text = True)
             result = outs.stdout
-            if (result[6:12] == "Failed" or result[6:13] == "Passed!"):
-                log_file.write(f"\n{result[6:-1]}")
+            if (result[6:12] == "Failed" or result[6:12] == "Passed"):
+                log_file.write(f"\n{result[6:]}")
                 break
 
         except subprocess.CalledProcessError:
