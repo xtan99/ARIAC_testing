@@ -23,6 +23,8 @@ function combine_logs() {
         do
             echo "$LINE" >> $dirname/combined_logs.txt
         done < "$file"
+        echo "---" >> $dirname/combined_logs.txt
+        echo " " >> $dirname/combined_logs.txt
 
         arr[$j]="$file"
 

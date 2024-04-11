@@ -41,7 +41,7 @@ def main():
             outs = subprocess.run(["ros2", "topic", "echo", "/test_status", "--once"], capture_output = True, text = True)
             result = outs.stdout
             if (result[6:12] == "Failed" or result[6:12] == "Passed"):
-                log_file.write(f"\n{result[6:]}")
+                log_file.write(f"\n{result[6:12]}")
                 break
 
         except subprocess.CalledProcessError:
@@ -52,7 +52,7 @@ def main():
             outs = subprocess.run("ros2 node list | grep moveit", shell = True, capture_output = True, text = True)
             result = outs.stdout
             if (result == ''):
-                log_file.write(f"\nMoveit Crashed");
+                log_file.write(f"\nMoveit Crashed")
                 break
 
         except subprocess.CalledProcessError:
@@ -64,8 +64,7 @@ def main():
                 "gz topic -l", shell=True).decode("utf-8")
 
             if output == '' or output.count('An instance of Gazebo is not running') > 0:
-                result = "Gazebo crashed"
-                log_file.write(f"\n{result}")
+                log_file.write(f"\nGazebo crashed")
                 break
                 
         except subprocess.CalledProcessError:
