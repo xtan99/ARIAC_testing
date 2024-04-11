@@ -13,10 +13,6 @@ import shutil
 
 def main():
     package_name = "ariac_test"
-
-    # Clear ros log folder
-    if (os.path.exists('/root/.ros/log')):
-        shutil.rmtree('/root/.ros/log/')
     
     # Clears the tmp directory
     for file_path in ["/tmp/test_log.txt"]:
@@ -31,7 +27,7 @@ def main():
 
     else:    
         trial_name = "testing"
-    
+
     process = Popen(["ros2", "launch", package_name, launch_file, f"trial_name:={trial_name}", '--noninteractive'])
 
     time.sleep(10)
@@ -49,17 +45,25 @@ def main():
                 break
 
         except subprocess.CalledProcessError:
-            log_file.write(f"Error while reading topic test_status")
+            log_file.write(f"\nError while reading topic test_status")
             break
 
-        #ros2 node list | grep move
+        try:
+            outs = subprocess.run("ros2 node list | grep moveit", shell = True, capture_output = True, text = True)
+            result = outs.stdout
+            if (result == ''):
+                log_file.write(f"\nMoveit Crashed");
+                break
+
+        except subprocess.CalledProcessError:
+            log_file.write(f"\nError while checking Moveit")
+            break
 
         try:
             output = subprocess.check_output(
                 "gz topic -l", shell=True).decode("utf-8")
 
             if output == '' or output.count('An instance of Gazebo is not running') > 0:
-                print('Gazebo Crashed')
                 result = "Gazebo crashed"
                 log_file.write(f"\n{result}")
                 break

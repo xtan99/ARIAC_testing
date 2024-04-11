@@ -1160,9 +1160,9 @@ bool AriacTest::FloorRobotBinTest()
                                   part_pose.position.z + 0.5, SetRobotOrientation(part_rotation)));
     FloorRobotMoveCartesian(waypoints, 0.2, 0.1, true);
 
-    //Cause failure
-    FloorRobotSetGripperState(false);
-    floor_robot_.detachObject(part_name);
+    // Uncomment the following lines to cause failure
+    // FloorRobotSetGripperState(false);
+    // floor_robot_.detachObject(part_name);
 
     sleep(2);
 
