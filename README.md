@@ -2,6 +2,7 @@
 This Repository contains the source code for Ariac Testing for the ARIAC competition.
 
 Install and use directions:
+
     - Clone the repository
         git clone https://github.com/xtan99/ARIAC_testing.git
     
@@ -20,9 +21,11 @@ Install and use directions:
             3. test_assembly  (Test to perform assembly)
     
 About the tests:
-    - The results for each test run can be found in ARIAC_test/automated_test/logs/ in a folder with the same name as the test, followed by a number
-      based on the number of previously existing folders for the same test
+
+    - The results for each test run can be found in ARIAC_test/automated_test/logs/ in a folder with the same name as the test, followed by a number based on the number of previously existing folders for the same test
+    
     - Each time the test is run, a new log file is generated, and the files are combined at the end of all the test runs
+    
     - Gazebo and MOVEit failures will also be logged
 
     1. Pick Parts from Bins:
