@@ -20,7 +20,22 @@ parts:
     bin1:
       - type: 'pump'
         color: 'purple'
-        slots: [1]
+        slots: [5]
+
+    bin2:
+      - type: 'battery'
+        color: 'green'
+        slots: [5]
+    
+    bin5:
+      - type: 'sensor'
+        color: 'red'
+        slots: [5]
+    
+    bin6:
+      - type: 'regulator'
+        color: 'blue'
+        slots: [5]
         
 orders:
   - id: 'MMB30H56'
