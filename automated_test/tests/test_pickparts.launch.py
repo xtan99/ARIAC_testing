@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
     # Nist Competitor node
     tester = Node(
         package="ariac_test",
-        executable="test_1",
+        executable="test_pickparts",
         output="screen",
         parameters=[
             moveit_config.robot_description,

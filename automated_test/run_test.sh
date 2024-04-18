@@ -87,7 +87,7 @@ else
         iterations=$2
     fi
     
-    echo "==== Running all tests from the tests directory"
+    echo "==== Running all tests from the tests directory ${iterations} times"
     # absolute path of the current script
     tests_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )" # https://stackoverflow.com/a/4774063/99379
     # get each file in the tests folder
